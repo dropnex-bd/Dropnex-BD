@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -7,6 +6,9 @@
 <meta name="theme-color" content="#FFD928">
 <meta name="description" content="Dropnex BD — বাংলাদেশের ড্রপশিপিং প্ল্যাটফর্ম। ব্যবসা আপনার, স্টক আমাদের।">
 <title>Dropnex BD | Dropshipping Platform</title>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
@@ -226,6 +228,8 @@ button { cursor: pointer; }
   border-radius: 15px;
   overflow: hidden;
   transition: transform .2s, box-shadow .2s;
+  display: flex;
+  flex-direction: column;
 }
 .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .product-image {
@@ -238,14 +242,16 @@ button { cursor: pointer; }
   overflow: hidden;
 }
 .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.product-info { padding: 14px; }
-.product-info h3 { font-size: 15px; line-height: 1.5; margin-bottom: 5px; }
-.product-info p { font-size: 12px; color: var(--gray); min-height: 20px; }
-.product-price { font-size: 18px; font-weight: 900; margin: 9px 0 12px; }
-.product-buttons { display: grid; grid-template-columns: 1fr; gap: 8px; }
-.product-buttons a { text-align: center; font-size: 12px; padding: 9px; border-radius: 8px; font-weight: 800; }
-.order-btn { background: var(--yellow); }
-.details-btn { border: 1px solid var(--border); }
+.product-info { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
+.product-category-tag { font-size: 11px; font-weight: 700; color: #d97706; background: #fef3c7; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; width: fit-content; }
+.product-info h3 { font-size: 15px; line-height: 1.5; margin-bottom: 4px; }
+.product-info p { font-size: 12px; color: var(--gray); margin-bottom: 8px; flex-grow: 1; }
+.estimated-profit { font-size: 12px; font-weight: 700; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 6px; margin-bottom: 8px; display: inline-block; }
+.product-price { font-size: 18px; font-weight: 900; margin: 4px 0 12px; }
+.product-buttons { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: auto; }
+.product-buttons a { text-align: center; font-size: 12px; padding: 10px; border-radius: 8px; font-weight: 800; display: block; }
+.order-btn { background: var(--yellow); color: var(--black); }
+.order-btn:hover { background: #e5c400; }
 .empty-state { display: none; text-align: center; padding: 35px 10px; color: var(--gray); }
 
 /* HOW IT WORKS */
@@ -324,16 +330,10 @@ button { cursor: pointer; }
   .product-info { padding: 10px; }
   .product-info h3 { font-size: 13px; }
   .product-price { font-size: 16px; }
-  .product-buttons a { font-size: 11px; }
   .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .step-card { padding: 15px 12px; }
   .benefit-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; gap: 25px; }
-}
-@media (max-width: 360px) {
-  .brand { font-size: 18px; }
-  .menu-btn, .account-btn { font-size: 10px; padding: 8px 5px; }
-  .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>
 </head>
@@ -350,8 +350,6 @@ button { cursor: pointer; }
         <a href="#home">হোম</a>
         <a href="#categories">সব ক্যাটাগরি</a>
         <a href="#products">সব পণ্য</a>
-        <a href="#trending">ট্রেন্ডিং পণ্য</a>
-        <a href="#hot">জনপ্রিয় পণ্য</a>
         <a href="#how-it-works">যেভাবে কাজ করে</a>
         <a href="#benefits">ড্রপশিপিং সুবিধা</a>
         <a href="#contact">যোগাযোগ</a>
@@ -370,7 +368,6 @@ button { cursor: pointer; }
       <nav class="dropdown account-menu" id="accountMenu">
         <a href="#how-it-works">ড্রপশিপিং শুরু করুন</a>
         <a href="#contact">সাপোর্টে যোগাযোগ</a>
-        <!-- আপনার অ্যাকাউন্ট লগইন পেজের লিংক এখানে যুক্ত করুন -->
       </nav>
     </div>
   </div>
@@ -404,8 +401,6 @@ button { cursor: pointer; }
     </div>
   </section>
 
-  <!-- ভিডিও বদলাতে নিচের স্ক্রিপ্টে videoUrl-এর জায়গায় আপনার ভিডিওর সরাসরি URL দিন -->
-
   <section class="trust-strip" aria-label="আমাদের সেবা">
     <div class="trust-item">
       <strong>স্টক রাখার প্রয়োজন নেই</strong>
@@ -432,41 +427,23 @@ button { cursor: pointer; }
       <a class="category-card" href="#products" data-category="all">
         <span class="category-icon">▦</span><strong>All Products</strong>
       </a>
-      <a class="category-card" href="#trending" data-category="trending">
-        <span class="category-icon">↗</span><strong>Trending Products</strong>
-      </a>
-      <a class="category-card" href="#hot" data-category="hot">
-        <span class="category-icon">★</span><strong>All Time Hot Products</strong>
-      </a>
-      <a class="category-card" href="#products" data-category="mini-ups">
+      <a class="category-card" href="#products" data-category="Mini UPS">
         <span class="category-icon">▣</span><strong>Mini UPS</strong>
       </a>
-      <a class="category-card" href="#products" data-category="earbuds">
+      <a class="category-card" href="#products" data-category="Earbuds">
         <span class="category-icon">◉</span><strong>Earbuds</strong>
       </a>
-      <a class="category-card" href="#products" data-category="headphones">
+      <a class="category-card" href="#products" data-category="Headphones">
         <span class="category-icon">◖</span><strong>Headphones</strong>
       </a>
-      <a class="category-card" href="#products" data-category="powerbank">
+      <a class="category-card" href="#products" data-category="Powerbank">
         <span class="category-icon">▰</span><strong>Powerbank</strong>
       </a>
-      <a class="category-card" href="#products" data-category="speaker">
+      <a class="category-card" href="#products" data-category="Speaker">
         <span class="category-icon">◉</span><strong>Speaker</strong>
       </a>
-      <a class="category-card" href="#products" data-category="gaming">
+      <a class="category-card" href="#products" data-category="Gaming">
         <span class="category-icon">⌘</span><strong>Gaming Accessories</strong>
-      </a>
-      <a class="category-card" href="#products" data-category="decor">
-        <span class="category-icon">⌂</span><strong>Decor Items</strong>
-      </a>
-      <a class="category-card" href="#products" data-category="lamp">
-        <span class="category-icon">◐</span><strong>Lamp</strong>
-      </a>
-      <a class="category-card" href="#products" data-category="rechargeable-lights">
-        <span class="category-icon">◉</span><strong>Rechargeable Lights</strong>
-      </a>
-      <a class="category-card" href="#products" data-category="rechargeable-fan">
-        <span class="category-icon">✳</span><strong>Rechargeable Fan</strong>
       </a>
     </div>
   </section>
@@ -485,137 +462,12 @@ button { cursor: pointer; }
       </form>
     </div>
 
+    <!-- সুপাবেস থেকে ডাইনামিক প্রোডাক্টগুলো এখানে লোড হবে -->
     <div class="product-grid" id="productGrid">
-
-      <!-- নমুনা পণ্য: নিজের পণ্যের ছবি, দাম ও ক্যাটাগরি দিয়ে পরিবর্তন করুন -->
-      <article class="product-card" data-category="mini-ups trending hot" data-name="মিনি ইউপিএস">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>মিনি ইউপিএস</h3>
-          <p>রাউটার ও ONU-এর ব্যাকআপ</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="earbuds trending" data-name="ওয়্যারলেস ইয়ারবাডস">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>ওয়্যারলেস ইয়ারবাডস</h3>
-          <p>দৈনন্দিন ব্যবহারের জন্য</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="powerbank hot" data-name="পাওয়ার ব্যাংক">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>পাওয়ার ব্যাংক</h3>
-          <p>যাত্রাপথে চার্জের সুবিধা</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="speaker trending" data-name="পোর্টেবল স্পিকার">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>পোর্টেবল স্পিকার</h3>
-          <p>গান ও বিনোদনের জন্য</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="headphones" data-name="ওভার ইয়ার হেডফোন">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>ওভার-ইয়ার হেডফোন</h3>
-          <p>মিউজিক ও গেমিং</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="gaming" data-name="গেমিং অ্যাকসেসরিজ">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>গেমিং অ্যাকসেসরিজ</h3>
-          <p>গেমিং সেটআপের জন্য</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="decor lamp" data-name="ডেকোর ল্যাম্প">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>ডেকোর ল্যাম্প</h3>
-          <p>ঘরের সাজসজ্জার জন্য</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="rechargeable-lights" data-name="রিচার্জেবল লাইট">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>রিচার্জেবল লাইট</h3>
-          <p>বিদ্যুৎ না থাকলেও আলো</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="product-card" data-category="rechargeable-fan" data-name="রিচার্জেবল ফ্যান">
-        <div class="product-image">পণ্যের ছবি যুক্ত করুন</div>
-        <div class="product-info">
-          <h3>রিচার্জেবল ফ্যান</h3>
-          <p>ঘর ও ভ্রমণে ব্যবহারযোগ্য</p>
-          <div class="product-price">৳ ০,০০০</div>
-          <div class="product-buttons">
-            <a class="order-btn" href="#contact">অর্ডার / বিস্তারিত</a>
-          </div>
-        </div>
-      </article>
-
+      <!-- JavaScript এর মাধ্যমে ডেটা এখানে রেন্ডার হবে -->
     </div>
+    
     <div class="empty-state" id="emptyState">দুঃখিত, এই নামে কোনো পণ্য পাওয়া যায়নি।</div>
-  </section>
-
-  <section class="section" id="trending">
-    <div class="section-heading">
-      <h2>ট্রেন্ডিং পণ্য</h2>
-      <p>যেসব পণ্য আপনার পরবর্তী বিক্রির সুযোগ হতে পারে</p>
-      <div class="underline"></div>
-    </div>
-    <div class="product-grid" id="trendingGrid"></div>
-  </section>
-
-  <section class="section" id="hot">
-    <div class="section-heading">
-      <h2>জনপ্রিয় পণ্য</h2>
-      <p>জনপ্রিয় পণ্যের সংগ্রহ থেকে বেছে নিন</p>
-      <div class="underline"></div>
-    </div>
-    <div class="product-grid" id="hotGrid"></div>
   </section>
 
   <section class="section" id="how-it-works">
@@ -702,7 +554,6 @@ button { cursor: pointer; }
         <h3>যোগাযোগ</h3>
         <div class="footer-links">
           <a href="tel:+8801941900221">ফোন: 01941 900 221</a>
-          <!-- আপনার অফিসিয়াল Facebook/WhatsApp লিংক এখানে যুক্ত করুন -->
           <a href="tel:+8801941900221">সাপোর্টে কল করুন</a>
         </div>
         <p style="margin-top:14px">সাপোর্ট সময় ও অর্ডারের নিয়ম জানতে আমাদের সঙ্গে যোগাযোগ করুন।</p>
@@ -715,6 +566,82 @@ button { cursor: pointer; }
 </footer>
 
 <script>
+/* SUPABASE CONFIGURATION & PRODUCT FETCHING */
+const SUPABASE_URL = 'https://jwbmqbyuxsrouiirpetl.supabase.co';
+const SUPABASE_ANON_KEY = 'Sb_publishable_jBQZA1GORyMyfvk5i2QilQ_1WDIgWfo';
+
+const { createClient } = supabase;
+const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allProducts = [];
+
+async function fetchProductsFromSupabase() {
+  const productGrid = document.getElementById("productGrid");
+  productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; padding: 20px;">প্রোডাক্ট লোড হচ্ছে...</p>';
+
+  const { data, error } = await _supabase
+    .from('products')
+    .select('*')
+    .order('id', { ascending: false });
+
+  if (error) {
+    console.error('ডাটা ফেচ করতে সমস্যা হয়েছে:', error);
+    productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: red;">প্রোডাক্ট লোড করতে সমস্যা হয়েছে। দয়া করে কিছুক্ষণ পর আবার চেষ্টা করুন।</p>';
+    return;
+  }
+
+  allProducts = data || [];
+  renderProducts(allProducts);
+}
+
+function renderProducts(products) {
+  const productGrid = document.getElementById("productGrid");
+  const emptyState = document.getElementById("emptyState");
+  
+  productGrid.innerHTML = "";
+
+  if (products.length === 0) {
+    emptyState.style.display = "block";
+    return;
+  } else {
+    emptyState.style.display = "none";
+  }
+
+  products.forEach(product => {
+    const card = document.createElement("article");
+    card.className = "product-card";
+    card.dataset.category = product.category || "";
+    card.dataset.name = product.title || "";
+
+    const imageUrl = product.image_url ? product.image_url : "";
+    const imageContent = imageUrl 
+      ? `<img src="${imageUrl}" alt="${product.title}" loading="lazy">` 
+      : 'ছবি নেই';
+
+    const profitText = product.estimated_profit ? `সম্ভাব্য প্রফিট: ${product.estimated_profit}` : 'সম্ভাব্য প্রফিট: আলোচনা সাপেক্ষে';
+    const descriptionText = product.description ? product.description : '';
+
+    card.innerHTML = `
+      <div class="product-image">${imageContent}</div>
+      <div class="product-info">
+        <span class="product-category-tag">${product.category || 'General'}</span>
+        <h3>${product.title}</h3>
+        <p>${descriptionText}</p>
+        <div class="estimated-profit">${profitText}</div>
+        <div class="product-price">৳ ${Number(product.regular_price).toLocaleString('en-BD')}</div>
+        <div class="product-buttons">
+          <a class="order-btn" href="#contact">ড্রপশিপার প্রাইস দেখতে জয়েন করুন</a>
+        </div>
+      </div>
+    `;
+
+    productGrid.appendChild(card);
+  });
+}
+
+// পেজ লোড হওয়ার সাথে সাথে ডেটা ফেচ করা
+document.addEventListener("DOMContentLoaded", fetchProductsFromSupabase);
+
 /* MENU DROPDOWNS */
 const menuButton = document.getElementById("menuButton");
 const mainMenu = document.getElementById("mainMenu");
@@ -747,36 +674,25 @@ document.addEventListener("click", event => {
   }
 });
 
-document.querySelectorAll(".dropdown a").forEach(link => {
-  link.addEventListener("click", () => {
-    mainMenu.classList.remove("open");
-    accountMenu.classList.remove("open");
-    menuButton.setAttribute("aria-expanded", "false");
-    accountButton.setAttribute("aria-expanded", "false");
-  });
-});
-
-/* PRODUCT SEARCH */
+/* PRODUCT SEARCH & FILTER */
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("productSearch");
-const productCards = Array.from(document.querySelectorAll("#productGrid .product-card"));
-const emptyState = document.getElementById("emptyState");
 
 function filterProducts(query) {
   const term = query.trim().toLowerCase();
-  let visibleCount = 0;
+  if (!term || term === "all") {
+    renderProducts(allProducts);
+    return;
+  }
 
-  productCards.forEach(card => {
-    const searchableText =
-      (card.dataset.name || "") + " " +
-      (card.dataset.category || "") + " " +
-      card.innerText;
-    const visible = searchableText.toLowerCase().includes(term);
-    card.style.display = visible ? "" : "none";
-    if (visible) visibleCount++;
+  const filtered = allProducts.filter(p => {
+    const title = (p.title || "").toLowerCase();
+    const category = (p.category || "").toLowerCase();
+    const desc = (p.description || "").toLowerCase();
+    return title.includes(term) || category.includes(term) || desc.includes(term);
   });
 
-  emptyState.style.display = visibleCount ? "none" : "block";
+  renderProducts(filtered);
 }
 
 searchForm.addEventListener("submit", event => {
@@ -790,7 +706,10 @@ searchInput.addEventListener("input", () => filterProducts(searchInput.value));
 document.querySelectorAll(".category-card").forEach(card => {
   card.addEventListener("click", event => {
     const category = card.dataset.category;
-    if (category === "all" || category === "trending" || category === "hot") return;
+    if (category === "all") {
+      renderProducts(allProducts);
+      return;
+    }
 
     event.preventDefault();
     searchInput.value = category;
@@ -798,40 +717,6 @@ document.querySelectorAll(".category-card").forEach(card => {
     document.getElementById("products").scrollIntoView({ behavior: "smooth" });
   });
 });
-
-/* COPY SAMPLE PRODUCTS INTO TRENDING/HOT SECTIONS */
-function createProductCopy(card) {
-  const copy = card.cloneNode(true);
-  copy.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", () => {
-      document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
-    });
-  });
-  return copy;
-}
-
-const trendingGrid = document.getElementById("trendingGrid");
-const hotGrid = document.getElementById("hotGrid");
-
-productCards.forEach(card => {
-  const categories = (card.dataset.category || "").split(/\s+/);
-  if (categories.includes("trending")) trendingGrid.appendChild(createProductCopy(card));
-  if (categories.includes("hot")) hotGrid.appendChild(createProductCopy(card));
-});
-
-/* HERO VIDEO
-   Replace the empty value with a direct MP4 video URL.
-   Example: const videoUrl = "https://yourwebsite.com/video.mp4";
-*/
-const videoUrl = "";
-const heroVideo = document.getElementById("heroVideo");
-const videoPlaceholder = document.getElementById("videoPlaceholder");
-
-if (videoUrl.trim()) {
-  heroVideo.src = videoUrl.trim();
-  heroVideo.hidden = false;
-  videoPlaceholder.style.display = "none";
-}
 
 /* FOOTER YEAR */
 document.getElementById("year").textContent = new Date().getFullYear();
