@@ -253,6 +253,8 @@ button { cursor: pointer; }
 .order-btn { background: var(--yellow); color: var(--black); }
 .order-btn:hover { background: #e5c400; }
 .empty-state { display: none; text-align: center; padding: 35px 10px; color: var(--gray); }
+.grid-message { text-align: center; grid-column: 1 / -1; padding: 20px; color: var(--gray); font-size: 14px; }
+.grid-message.error { color: #c00; }
 
 /* HOW IT WORKS */
 .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -462,11 +464,8 @@ button { cursor: pointer; }
       </form>
     </div>
 
-    <!-- সুপাবেস থেকে ডাইনামিক প্রোডাক্টগুলো এখানে লোড হবে -->
-    <div class="product-grid" id="productGrid">
-      <!-- JavaScript এর মাধ্যমে ডেটা এখানে রেন্ডার হবে -->
-    </div>
-    
+    <div class="product-grid" id="productGrid"></div>
+
     <div class="empty-state" id="emptyState">দুঃখিত, এই নামে কোনো পণ্য পাওয়া যায়নি।</div>
   </section>
 
@@ -566,160 +565,205 @@ button { cursor: pointer; }
 </footer>
 
 <script>
-/* SUPABASE CONFIGURATION & PRODUCT FETCHING */
+/* ===== SUPABASE CONFIG ===== */
 const SUPABASE_URL = 'https://jwbmqbyuxsrouiirpetl.supabase.co';
-const SUPABASE_ANON_KEY = 'Sb_publishable_jBQZA1GORyMyfvk5i2QilQ_1WDIgWfo';
+// গুরুত্বপূর্ণ: কী ছোট হাতের sb_ দিয়ে শুরু হয়
+const SUPABASE_ANON_KEY = 'sb_publishable_jBQZA1GORyMyfvk5i2QilQ_1WDIgWfo';
 
-const { createClient } = supabase;
-const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let allProducts = [];
+let currentCategory = 'all';
 
-async function fetchProductsFromSupabase() {
-  const productGrid = document.getElementById("productGrid");
-  productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; padding: 20px;">প্রোডাক্ট লোড হচ্ছে...</p>';
-
-  const { data, error } = await _supabase
-    .from('products')
-    .select('*')
-    .order('id', { ascending: false });
-
-  if (error) {
-    console.error('ডাটা ফেচ করতে সমস্যা হয়েছে:', error);
-    productGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: red;">প্রোডাক্ট লোড করতে সমস্যা হয়েছে। দয়া করে কিছুক্ষণ পর আবার চেষ্টা করুন।</p>';
-    return;
-  }
-
-  allProducts = data || [];
-  renderProducts(allProducts);
+/* ===== HELPERS ===== */
+function escapeHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
+// একাধিক সম্ভাব্য কলামের নাম থেকে প্রথম যে মান পাওয়া যায় সেটি নেয়
+function pick(obj, keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+
+function normalizeProduct(raw) {
+  let image = pick(raw, ['image_url', 'image', 'img', 'photo', 'thumbnail', 'image_link', 'picture']);
+  if (Array.isArray(image)) image = image[0] || '';
+  return {
+    title: pick(raw, ['title', 'name', 'product_name', 'product_title']),
+    category: pick(raw, ['category', 'category_name', 'type']),
+    description: pick(raw, ['description', 'details', 'short_description', 'desc']),
+    image: image,
+    profit: pick(raw, ['estimated_profit', 'profit', 'estimated_profit_amount']),
+    price: pick(raw, ['regular_price', 'price', 'selling_price', 'sale_price', 'mrp'])
+  };
+}
+
+function showGridMessage(text, isError) {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '<p class="grid-message' + (isError ? ' error' : '') + '">' + escapeHtml(text) + '</p>';
+}
+
+/* ===== FETCH PRODUCTS ===== */
+async function fetchProductsFromSupabase() {
+  showGridMessage('প্রোডাক্ট লোড হচ্ছে...', false);
+
+  try {
+    const { data, error } = await _supabase.from('products').select('*');
+
+    if (error) {
+      console.error('Supabase error:', error);
+      showGridMessage('প্রোডাক্ট লোড করতে সমস্যা হয়েছে: ' + (error.message || 'অজানা সমস্যা'), true);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('products টেবিল থেকে কোনো ডাটা আসেনি। সম্ভবত RLS read policy নেই।');
+      showGridMessage('কোনো পণ্য পাওয়া যায়নি। (Supabase-এ products টেবিলের RLS-এ SELECT policy আছে কিনা দেখুন)', true);
+      return;
+    }
+
+    console.log('প্রথম ডাটার কলামগুলো:', Object.keys(data[0]));
+
+    // নতুন পণ্য আগে দেখানোর জন্য সাজানো (id বা created_at থাকলে)
+    const sorted = data.slice().sort((a, b) => {
+      if (a.created_at && b.created_at) return new Date(b.created_at) - new Date(a.created_at);
+      if (typeof a.id === 'number' && typeof b.id === 'number') return b.id - a.id;
+      return 0;
+    });
+
+    allProducts = sorted.map(normalizeProduct);
+    applyFilters();
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    showGridMessage('নেটওয়ার্ক বা কোডে সমস্যা হয়েছে: ' + err.message, true);
+  }
+}
+
+/* ===== RENDER ===== */
 function renderProducts(products) {
-  const productGrid = document.getElementById("productGrid");
-  const emptyState = document.getElementById("emptyState");
-  
-  productGrid.innerHTML = "";
+  const productGrid = document.getElementById('productGrid');
+  const emptyState = document.getElementById('emptyState');
+
+  productGrid.innerHTML = '';
 
   if (products.length === 0) {
-    emptyState.style.display = "block";
+    emptyState.style.display = 'block';
     return;
-  } else {
-    emptyState.style.display = "none";
   }
+  emptyState.style.display = 'none';
 
   products.forEach(product => {
-    const card = document.createElement("article");
-    card.className = "product-card";
-    card.dataset.category = product.category || "";
-    card.dataset.name = product.title || "";
+    const card = document.createElement('article');
+    card.className = 'product-card';
 
-    const imageUrl = product.image_url ? product.image_url : "";
-    const imageContent = imageUrl 
-      ? `<img src="${imageUrl}" alt="${product.title}" loading="lazy">` 
+    const imageContent = product.image
+      ? '<img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.title) + '" loading="lazy">'
       : 'ছবি নেই';
 
-    const profitText = product.estimated_profit ? `সম্ভাব্য প্রফিট: ${product.estimated_profit}` : 'সম্ভাব্য প্রফিট: আলোচনা সাপেক্ষে';
-    const descriptionText = product.description ? product.description : '';
+    const profitText = product.profit
+      ? 'সম্ভাব্য প্রফিট: ' + escapeHtml(product.profit)
+      : 'সম্ভাব্য প্রফিট: আলোচনা সাপেক্ষে';
 
-    card.innerHTML = `
-      <div class="product-image">${imageContent}</div>
-      <div class="product-info">
-        <span class="product-category-tag">${product.category || 'General'}</span>
-        <h3>${product.title}</h3>
-        <p>${descriptionText}</p>
-        <div class="estimated-profit">${profitText}</div>
-        <div class="product-price">৳ ${Number(product.regular_price).toLocaleString('en-BD')}</div>
-        <div class="product-buttons">
-          <a class="order-btn" href="#contact">ড্রপশিপার প্রাইস দেখতে জয়েন করুন</a>
-        </div>
-      </div>
-    `;
+    const priceNum = Number(product.price);
+    const priceText = (product.price !== '' && !isNaN(priceNum))
+      ? '৳ ' + priceNum.toLocaleString('en-BD')
+      : (product.price ? '৳ ' + escapeHtml(product.price) : 'মূল্য জানতে যোগাযোগ করুন');
+
+    card.innerHTML =
+      '<div class="product-image">' + imageContent + '</div>' +
+      '<div class="product-info">' +
+        '<span class="product-category-tag">' + escapeHtml(product.category || 'General') + '</span>' +
+        '<h3>' + escapeHtml(product.title) + '</h3>' +
+        '<p>' + escapeHtml(product.description) + '</p>' +
+        '<div class="estimated-profit">' + profitText + '</div>' +
+        '<div class="product-price">' + priceText + '</div>' +
+        '<div class="product-buttons">' +
+          '<a class="order-btn" href="#contact">ড্রপশিপার প্রাইস দেখতে জয়েন করুন</a>' +
+        '</div>' +
+      '</div>';
 
     productGrid.appendChild(card);
   });
 }
 
-// পেজ লোড হওয়ার সাথে সাথে ডেটা ফেচ করা
-document.addEventListener("DOMContentLoaded", fetchProductsFromSupabase);
+/* ===== SEARCH + CATEGORY FILTER ===== */
+const searchForm = document.getElementById('searchForm');
+const searchInput = document.getElementById('productSearch');
 
-/* MENU DROPDOWNS */
-const menuButton = document.getElementById("menuButton");
-const mainMenu = document.getElementById("mainMenu");
-const accountButton = document.getElementById("accountButton");
-const accountMenu = document.getElementById("accountMenu");
-
-function toggleDropdown(button, menu, otherButton, otherMenu) {
-  const willOpen = !menu.classList.contains("open");
-  menu.classList.toggle("open", willOpen);
-  button.setAttribute("aria-expanded", String(willOpen));
-  otherMenu.classList.remove("open");
-  otherButton.setAttribute("aria-expanded", "false");
-}
-
-menuButton.addEventListener("click", () =>
-  toggleDropdown(menuButton, mainMenu, accountButton, accountMenu)
-);
-accountButton.addEventListener("click", () =>
-  toggleDropdown(accountButton, accountMenu, menuButton, mainMenu)
-);
-
-document.addEventListener("click", event => {
-  if (!event.target.closest(".menu-wrap")) {
-    mainMenu.classList.remove("open");
-    menuButton.setAttribute("aria-expanded", "false");
-  }
-  if (!event.target.closest(".account-wrap")) {
-    accountMenu.classList.remove("open");
-    accountButton.setAttribute("aria-expanded", "false");
-  }
-});
-
-/* PRODUCT SEARCH & FILTER */
-const searchForm = document.getElementById("searchForm");
-const searchInput = document.getElementById("productSearch");
-
-function filterProducts(query) {
-  const term = query.trim().toLowerCase();
-  if (!term || term === "all") {
-    renderProducts(allProducts);
-    return;
-  }
+function applyFilters() {
+  const term = searchInput.value.trim().toLowerCase();
 
   const filtered = allProducts.filter(p => {
-    const title = (p.title || "").toLowerCase();
-    const category = (p.category || "").toLowerCase();
-    const desc = (p.description || "").toLowerCase();
-    return title.includes(term) || category.includes(term) || desc.includes(term);
+    const title = String(p.title || '').toLowerCase();
+    const category = String(p.category || '').toLowerCase();
+    const desc = String(p.description || '').toLowerCase();
+
+    const categoryOk = currentCategory === 'all' || category.includes(currentCategory.toLowerCase());
+    const termOk = !term || title.includes(term) || category.includes(term) || desc.includes(term);
+
+    return categoryOk && termOk;
   });
 
   renderProducts(filtered);
 }
 
-searchForm.addEventListener("submit", event => {
+searchForm.addEventListener('submit', event => {
   event.preventDefault();
-  filterProducts(searchInput.value);
+  applyFilters();
 });
+searchInput.addEventListener('input', applyFilters);
 
-searchInput.addEventListener("input", () => filterProducts(searchInput.value));
-
-/* CATEGORY FILTER */
-document.querySelectorAll(".category-card").forEach(card => {
-  card.addEventListener("click", event => {
-    const category = card.dataset.category;
-    if (category === "all") {
-      renderProducts(allProducts);
-      return;
-    }
-
-    event.preventDefault();
-    searchInput.value = category;
-    filterProducts(category);
-    document.getElementById("products").scrollIntoView({ behavior: "smooth" });
+document.querySelectorAll('.category-card').forEach(card => {
+  card.addEventListener('click', () => {
+    currentCategory = card.dataset.category || 'all';
+    searchInput.value = '';
+    applyFilters();
   });
 });
 
-/* FOOTER YEAR */
-document.getElementById("year").textContent = new Date().getFullYear();
+/* ===== MENU DROPDOWNS ===== */
+const menuButton = document.getElementById('menuButton');
+const mainMenu = document.getElementById('mainMenu');
+const accountButton = document.getElementById('accountButton');
+const accountMenu = document.getElementById('accountMenu');
+
+function toggleDropdown(button, menu, otherButton, otherMenu) {
+  const willOpen = !menu.classList.contains('open');
+  menu.classList.toggle('open', willOpen);
+  button.setAttribute('aria-expanded', String(willOpen));
+  otherMenu.classList.remove('open');
+  otherButton.setAttribute('aria-expanded', 'false');
+}
+
+menuButton.addEventListener('click', () =>
+  toggleDropdown(menuButton, mainMenu, accountButton, accountMenu)
+);
+accountButton.addEventListener('click', () =>
+  toggleDropdown(accountButton, accountMenu, menuButton, mainMenu)
+);
+
+document.addEventListener('click', event => {
+  if (!event.target.closest('.menu-wrap')) {
+    mainMenu.classList.remove('open');
+    menuButton.setAttribute('aria-expanded', 'false');
+  }
+  if (!event.target.closest('.account-wrap')) {
+    accountMenu.classList.remove('open');
+    accountButton.setAttribute('aria-expanded', 'false');
+  }
+});
+
+/* ===== INIT ===== */
+document.getElementById('year').textContent = new Date().getFullYear();
+document.addEventListener('DOMContentLoaded', fetchProductsFromSupabase);
 </script>
 
 </body>
