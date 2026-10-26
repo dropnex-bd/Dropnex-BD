@@ -17,32 +17,53 @@
             color: #ffffff;
         }
 
-        /* Header / Navbar */
-        header {
+        /* Navbar */
+        nav {
             background-color: #000000;
             border-bottom: 3px solid #ffcc00;
-            padding: 15px 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        header h1 {
+        .logo {
             color: #ffcc00;
-            font-size: 28px;
+            font-size: 22px;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
-        header p {
-            color: #dddddd;
-            font-size: 14px;
-            margin-top: 5px;
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: 0.3s;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #000000;
+            background-color: #ffcc00;
         }
 
         /* Container */
         .container {
             max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
 
         /* Video Section */
@@ -66,7 +87,7 @@
             position: relative;
             background: #2a2a2a;
             border-radius: 8px;
-            padding: 60px 20px;
+            padding: 50px 20px;
             cursor: pointer;
             border: 1px dashed #ffcc00;
             transition: 0.3s;
@@ -80,7 +101,7 @@
         }
 
         .play-btn {
-            font-size: 50px;
+            font-size: 45px;
             color: #ffcc00;
             margin-bottom: 10px;
         }
@@ -143,11 +164,24 @@
         footer {
             background-color: #000000;
             text-align: center;
-            padding: 15px;
-            margin-top: 5px;
+            padding: 20px;
+            margin-top: 50px;
             border-top: 1px solid #333;
             color: #888888;
-            font-size: 13px;
+            font-size: 14px;
+        }
+
+        footer p {
+            margin-bottom: 8px;
+        }
+
+        footer a {
+            color: #ffcc00;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
         }
 
         footer span {
@@ -157,11 +191,16 @@
 </head>
 <body>
 
-    <!-- Header -->
-    <header>
-        <h1>DropNex BD</h1>
-        <p>আপনার বিশ্বস্ত ড্রপশিপিং পার্টনার</p>
-    </header>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">DropNex BD</div>
+        <ul class="nav-links">
+            <li><a href="#" class="active">Home</a></li>
+            <li><a href="#">Cart</a></li>
+            <li><a href="#">চ্যাট সাপোর্ট</a></li>
+            <li><a href="#">My Account</a></li>
+        </ul>
+    </nav>
 
     <div class="container">
 
@@ -211,7 +250,8 @@
 
     <!-- Footer -->
     <footer>
-        &copy; 2026 <span>DropNex BD</span>. All Rights Reserved.
+        <p>যোগাযোগ: <a href="tel:+8801941900221">+880 1941 900221</a></p>
+        <p>&copy; 2026 <span>DropNex BD</span>. All Rights Reserved.</p>
     </footer>
 
 </body>
