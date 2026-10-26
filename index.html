@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DropNex BD - Dropshipping Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        /* Header / Navbar */
+        header {
+            background-color: #000000;
+            border-bottom: 3px solid #ffcc00;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #ffcc00;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: #dddddd;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Video Section */
+        .video-section {
+            background-color: #1e1e1e;
+            border: 2px solid #ffcc00;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);
+        }
+
+        .video-section h2 {
+            color: #ffcc00;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        .video-card {
+            position: relative;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 60px 20px;
+            cursor: pointer;
+            border: 1px dashed #ffcc00;
+            transition: 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+
+        .video-card:hover {
+            background: #333333;
+            transform: scale(1.02);
+        }
+
+        .play-btn {
+            font-size: 50px;
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+
+        .video-card p {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Category Section */
+        .category-section {
+            text-align: center;
+        }
+
+        .category-section h2 {
+            color: #ffcc00;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 25px 15px;
+            transition: 0.3s;
+        }
+
+        .category-card:hover {
+            border-color: #ffcc00;
+            box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .category-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .category-card h3 {
+            color: #ffcc00;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .category-card p {
+            color: #aaaaaa;
+            font-size: 13px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #000000;
+            text-align: center;
+            padding: 15px;
+            margin-top: 5px;
+            border-top: 1px solid #333;
+            color: #888888;
+            font-size: 13px;
+        }
+
+        footer span {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>DropNex BD</h1>
+        <p>আপনার বিশ্বস্ত ড্রপশিপিং পার্টনার</p>
+    </header>
+
+    <div class="container">
+
+        <!-- Video Section (YouTube Link) -->
+        <section class="video-section">
+            <h2>আমাদের ড্রপশিপিং প্ল্যাটফর্ম সম্পর্কে জানুন</h2>
+            <!-- href এর ভেতর আপনার ইউটিউব ভিডিওর লিংক বসিয়ে দিন -->
+            <a href="https://www.youtube.com" target="_blank" class="video-card">
+                <div class="play-btn">▶</div>
+                <p>ভিডিওটি দেখতে এখানে ক্লিক করুন (YouTube)</p>
+            </a>
+        </section>
+
+        <!-- Product Categories Section -->
+        <section class="category-section">
+            <h2>পণ্য ক্যাটাগরি</h2>
+            <div class="category-grid">
+                
+                <div class="category-card">
+                    <div class="category-icon">📱</div>
+                    <h3>গ্যাজেট ও ইলেকট্রনিক্স</h3>
+                    <p>স্মার্টওয়াচ, হেডফোন ও সেরা টেক প্রোডাক্টস</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">👕</div>
+                    <h3>ফ্যাশন ও লাইফস্টাইল</h3>
+                    <p>ট্রেন্ডি পোশাক ও অ্যাক্সেসরিজ</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">🏠</div>
+                    <h3>হোম ও কিচেন</h3>
+                    <p>গৃহস্থালি ও রান্নাঘরের নিত্যপ্রয়োজনীয় পণ্য</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">✨</div>
+                    <h3>বিউটি ও পার্সোনাল কেয়ার</h3>
+                    <p>স্কিনকেয়ার ও পার্সোনাল গ্রুমিং আইটেম</p>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 <span>DropNex BD</span>. All Rights Reserved.
+    </footer>
+
+</body>
+</html>
